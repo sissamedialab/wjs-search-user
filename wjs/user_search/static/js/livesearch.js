@@ -151,7 +151,7 @@ function liveSearchDoSearch() {
 		liveSearchReq = new ActiveXObject("Microsoft.XMLHTTP");
 	}
 	liveSearchReq.onreadystatechange= liveSearchProcessReqChange;
-	    liveSearchReq.open("POST", "/search/");
+	    liveSearchReq.open("POST", "/searchapi");
         const formdata = new FormData(document.forms.searchform);
         // + liveSearchParams2
 	liveSearchLast = document.forms.searchform.q.value;

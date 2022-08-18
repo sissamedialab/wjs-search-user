@@ -12,15 +12,20 @@ urlpatterns = [
         views.SearchView.as_view(template_name="user_search/bis.html"),
         name="bis",
     ),
-    url(
-        r"^result/$",
-        views.SearchResult.as_view(template_name="user_search/result.html"),
-        name="result",
-    ),
+    # url(
+    #     r"^result/$",
+    #     views.SearchResult.as_view(template_name="user_search/result.html"),
+    #     name="result",
+    # ),
     url(
         r"^search/$",
         views.Search.as_view(),
         name="result",
+    ),
+    url(
+        r"^searchapi$",
+        views.searchapi,
+        name="searchapi",
     ),
 ]
 urlpatterns.extend(include_urls.urlpatterns)

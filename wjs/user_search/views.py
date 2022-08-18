@@ -7,6 +7,9 @@ from core.models import Account
 import re
 from django.shortcuts import render
 from django.http import HttpResponse
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class SearchView(FormView):
@@ -34,15 +37,16 @@ def get_queryset(querystring):
                 nullif(middle_name,''),
                 first_name,
                 '')
-      like %s
+      ilike %s
     )
     """
     clauses = [base for _ in parts]
     where = "where " + " and ".join(clauses)
     statement = (
         f"SELECT * FROM core_account {where} "
-        "ORDER BY last_name, first_name LIMIT 23"
+        "ORDER BY last_name, first_name LIMIT 41"
     )
+    logger.debug("Search API query statement: %s\n%s", statement, bind_values)
     qs = Account.objects.raw(statement, bind_values)
     return qs
 
@@ -54,12 +58,22 @@ def searchapi(request):
     # if not form.is_valid()...
     querystring = form.cleaned_data.get("q", None)
     if querystring is None:
-        return HttpResponse('')
+        return HttpResponse("")
     qs = get_queryset(querystring)
     res = ""
+    # import ipdb; ipdb.set_trace()
     for account in qs:
+        logger.debug("Account: %s", account)
         name = " ".join(
-            (account.first_name, account.middle_name, account.last_name)
+            [
+                namepart
+                for namepart in (
+                    account.first_name,
+                    account.middle_name,
+                    account.last_name,
+                )
+                if namepart is not None
+            ]
         )
 
         # Highlight
@@ -87,7 +101,11 @@ def searchapi(request):
             # replace the control chars with the html tags
             #
             # Inject markers...
-            name = re.sub(f"({searchre})", "\x00\\1\x01", name)
+            logger.debug("Highlight target: %s", searchre)
+            name = re.sub(
+                f"({searchre})", "\x00\\1\x01", name, flags=re.IGNORECASE
+            )
+            logger.debug("Highlighted name: %s", name)
         # ...html encode...
         # TODO name = h($name);
         # ...markers -> html

@@ -17,6 +17,7 @@ class LSTextInput(Input):
         attrs.setdefault("onkeypress", "liveSearchStart()")
         attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
+        attrs.setdefault("placeholder", "🔎")
         super().__init__(attrs)
 
     class Media:
@@ -44,7 +45,7 @@ class TATextInput(Input):
         attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
         attrs.setdefault("class", "typeahead")
-        attrs.setdefault("placeholder", "💩")
+        attrs.setdefault("placeholder", "🔎")
         super().__init__(attrs)
 
     class Media:
@@ -53,6 +54,7 @@ class TATextInput(Input):
         See https://docs.djangoproject.com/en/4.1/topics/forms/media/
         """
 
+        css = dict(all=("css/typeahead.custom.css",))
         js = (
             "js/jquery-3.6.0.min.js",
             "js/typeahead.bundle.js",

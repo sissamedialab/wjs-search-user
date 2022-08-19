@@ -4,28 +4,36 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TITLE</title>
+    <title>Search accounts with LiveSearch.js</title>
     <style>
       .highlight {
-          background-color: green;
+          background-color: lightskyblue;
+      }
+      table tr td {
+          font-size: smaller;
+      }
+      input {
+          width: 396px;
+          height: 30px;
+          padding: 8px 12px;
+          font-size: 24px;
+          line-height: 30px;
+          border: 2px solid #ccc;
+          -webkit-border-radius: 8px;
+          -moz-border-radius: 8px;
+          border-radius: 8px;
+          outline: none;
       }
     </style>
     {{ form.media }}
   </head>
   <body>
-    <div id="app">CIAO</div>
+    <div style="width:800px;margin:auto;">
+    <h1>Search accounts with LiveSearch.js</h1>
     <form id="searchform" method="post">
       {% csrf_token %}
       {{ form }}
-      <input type="submit" value="Submit">
     </form>
-    <div>
-      {% for account in object_list %}
-        <li>{{ account.first_name }} {{ account.middle_name }} {{ account.last_name }} - {{ account.email }}</li>
-        {% empty %}
-        <li>No accounts yet.</li>
-        {% endfor %}
-      </ul>
     </div>
     </body>
   </html>

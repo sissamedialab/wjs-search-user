@@ -1,3 +1,7 @@
 # WJS - User search form
 
-Search forma ala PoS
+Live search / type ahead widgets and views to easyly browse accounts.
+
+Inspired by PoS.
+
+![Demo with typeahead.js](typeahead-demo.gif "Demo with typeahead.js")

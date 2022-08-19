@@ -127,7 +127,9 @@ def searchapi(request):
             <div>{correspondence.notes}</div>
             <div>{notes}</div>
             </div>"""
-        res += f"""<div class="LSRow">id-{account.id} {name} ({account.email})
+        # ignore for now...
+        other = ""
+        res += f"""<div class="LSRow">id-{account.id} {name} ({account.email}) {account.institution}
         {other}
         </div>"""
 
@@ -161,32 +163,11 @@ def qs_to_json(qs):
                 if namepart is not None
             ]
         )
-        # mangled_data.append(Datum(name, account.email, account.institution))
+        # NB: typeahead.custom.js must know about the key names used in this dict
         mangled_data.append(
             dict(name=name, email=account.email, aff=account.institution)
         )
     return json.dumps(mangled_data)
-
-
-def qs_to_string(qs):
-    """Transform the query set into a json array of interesting data."""
-    mangled_data = []
-    for account in qs:
-        name = "-".join(
-            [
-                namepart
-                for namepart in (
-                    account.first_name,
-                    account.middle_name,
-                    account.last_name,
-                )
-                if namepart is not None
-            ]
-        )
-        mangled_data.append(
-            f"{name},{account.email},{account.institution}".replace(" ", "+")
-        )
-    return " ".join(mangled_data)
 
 
 class Search(View):

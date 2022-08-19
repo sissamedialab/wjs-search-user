@@ -27,6 +27,16 @@ urlpatterns = [
         views.searchapi,
         name="searchapi",
     ),
+    url(
+        r"^searchapiget/(?P<querystring>.+)",
+        views.searchapiget,
+        name="searchapiget",
+    ),
+    url(
+        r"^searchta$",
+        views.SearchTypeAhead.as_view(),
+        name="search-typeahead",
+    ),
 ]
 urlpatterns.extend(include_urls.urlpatterns)
 include_urls.urlpatterns = urlpatterns

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TITLE</title>
+    <!-- <style> -->
+    <!--   .highlight { -->
+    <!--       background-color: green; -->
+    <!--   } -->
+    <!-- </style> -->
+    {{ form.media }}
+  </head>
+  <body>
+    <form id="searchform" method="post">
+      {% csrf_token %}
+      {{ form }}
+      <input type="submit" value="Submit">
+    </form>
+    <div>
+      {% for account in object_list %}
+        <li>{{ account.first_name }} {{ account.middle_name }} {{ account.last_name }} - {{ account.email }}</li>
+        {% empty %}
+        <li>No accounts yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    </body>
+  </html>

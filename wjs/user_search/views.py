@@ -2,14 +2,19 @@
 
 # from django.views.generic import TemplateView
 from django.views.generic import FormView, View
-from .forms import SearchForm
+from .forms import SearchForm, SearchFormTypeAhead
 from core.models import Account
 import re
 from django.shortcuts import render
 from django.http import HttpResponse
-import logging
 
-logger = logging.getLogger(__name__)
+# import logging
+from wjs.jcom_profile.models import Correspondence
+import json
+import json2html
+from collections import namedtuple
+
+# logger = logging.getLogger(__name__)
 
 
 class SearchView(FormView):
@@ -46,7 +51,7 @@ def get_queryset(querystring):
         f"SELECT * FROM core_account {where} "
         "ORDER BY last_name, first_name LIMIT 41"
     )
-    logger.debug("Search API query statement: %s\n%s", statement, bind_values)
+    # logger.debug("Search API query statement: %s\n%s", statement, bind_values)
     qs = Account.objects.raw(statement, bind_values)
     return qs
 
@@ -61,9 +66,8 @@ def searchapi(request):
         return HttpResponse("")
     qs = get_queryset(querystring)
     res = ""
-    # import ipdb; ipdb.set_trace()
     for account in qs:
-        logger.debug("Account: %s", account)
+        # logger.debug("Account: %s", account)
         name = " ".join(
             [
                 namepart
@@ -101,21 +105,88 @@ def searchapi(request):
             # replace the control chars with the html tags
             #
             # Inject markers...
-            logger.debug("Highlight target: %s", searchre)
+            # logger.debug("Highlight target: %s", searchre)
             name = re.sub(
                 f"({searchre})", "\x00\\1\x01", name, flags=re.IGNORECASE
             )
-            logger.debug("Highlighted name: %s", name)
+            # logger.debug("Highlighted name: %s", name)
         # ...html encode...
         # TODO name = h($name);
         # ...markers -> html
         name = re.sub("\x00", '<span class="highlight">', name)
         name = re.sub("\x01", "</span>", name)
 
+        # hmmm... ma non dovrei trovare un account.jcom_correspondence
+        # o qualcosa di simile???
+        correspondences = Correspondence.objects.filter(account_id=account.id)
+        other = ""
+        for correspondence in correspondences:
+            notes = json2html.json2html.convert(json=correspondence.notes)
+            other += f"""<div>
+            <div>{correspondence.source}</div>
+            <div>{correspondence.notes}</div>
+            <div>{notes}</div>
+            </div>"""
         res += f"""<div class="LSRow">id-{account.id} {name} ({account.email})
+        {other}
         </div>"""
 
     return HttpResponse(res)
+
+
+def searchapiget(request, querystring):
+    """Return an HTML fragment for the given querystring."""
+    # import ipdb; ipdb.set_trace()
+    qs = get_queryset(querystring)
+    res = qs_to_json(qs)
+    # res = qs_to_string(qs)
+    return HttpResponse(res)
+
+
+Datum = namedtuple("Datum", ["name", "email", "aff"])
+
+
+def qs_to_json(qs):
+    """Transform the query set into a json array of interesting data."""
+    mangled_data = []
+    for account in qs:
+        name = " ".join(
+            [
+                namepart
+                for namepart in (
+                    account.first_name,
+                    account.middle_name,
+                    account.last_name,
+                )
+                if namepart is not None
+            ]
+        )
+        # mangled_data.append(Datum(name, account.email, account.institution))
+        mangled_data.append(
+            dict(name=name, email=account.email, aff=account.institution)
+        )
+    return json.dumps(mangled_data)
+
+
+def qs_to_string(qs):
+    """Transform the query set into a json array of interesting data."""
+    mangled_data = []
+    for account in qs:
+        name = "-".join(
+            [
+                namepart
+                for namepart in (
+                    account.first_name,
+                    account.middle_name,
+                    account.last_name,
+                )
+                if namepart is not None
+            ]
+        )
+        mangled_data.append(
+            f"{name},{account.email},{account.institution}".replace(" ", "+")
+        )
+    return " ".join(mangled_data)
 
 
 class Search(View):
@@ -137,3 +208,26 @@ class Search(View):
         qs = get_queryset(name)
         context = dict(object_list=qs, form=form)
         return render(request, "user_search/search.html", context)
+
+
+class SearchTypeAhead(View):
+    """Search and display usins typeahead js library."""
+
+    def get(self, request, *args, **kwargs):
+        """Render the search form."""
+        form = SearchFormTypeAhead()
+        return render(
+            request, "user_search/search-typeahead.html", dict(form=form)
+        )
+
+    def post(self, request, *args, **kwargs):
+        """Get some users."""
+        form = SearchForm(request.POST)
+        form.is_valid()
+        # if not form.is_valid()...
+        name = form.cleaned_data.get("q")
+        # import ipdb; ipdb.set_trace()
+        # name = form.fields['query']
+        qs = get_queryset(name)
+        context = dict(object_list=qs, form=form)
+        return render(request, "user_search/search-typeahead.html", context)

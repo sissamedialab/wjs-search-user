@@ -59,4 +59,5 @@ class TATextInput(Input):
             "js/jquery-3.6.0.min.js",
             "js/typeahead.bundle.js",
             "js/typeahead.custom.js",
+            "js/handlebars-v4.7.7.js",
         )

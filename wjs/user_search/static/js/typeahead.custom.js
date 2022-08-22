@@ -1,9 +1,9 @@
 window.onload = function() {
     // TODO: parametrize url
-    var bestPictures = new Bloodhound({
+    var accounts = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
-        sufficient: 41,
+        // queryTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
         remote: {
             url: 'https://janeway.sissamedialab.it/searchapiget/%QUERY',
             wildcard: '%QUERY'
@@ -12,8 +12,19 @@ window.onload = function() {
 
     // TODO: parametrize #id
     $('#id_q.typeahead').typeahead(null, {
-        name: 'best-pictures',
+        source: accounts,
         display: 'name',
-        source: bestPictures
+        name: 'accounts',
+        minLength: 3,
+        limit: 41,
+        highlight: true,
+        // templates: {
+        //     empty: [
+        //         '<div class="empty-message">',
+        //         'no account with such name',
+        //         '</div>'
+        //     ].join('\n'),
+        //     suggestion: Handlebars.compile('<div>{{name}} ({{email}}) {{aff}}</div>')
+        // }
     });
 };

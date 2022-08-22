@@ -1,20 +1,15 @@
 """User search views."""
 
-# from django.views.generic import TemplateView
 from django.views.generic import FormView, View
 from .forms import SearchForm, SearchFormTypeAhead
 from core.models import Account
 import re
 from django.shortcuts import render
 from django.http import HttpResponse
-
-# import logging
 from wjs.jcom_profile.models import Correspondence
 import json
-import json2html
-from collections import namedtuple
-
-# logger = logging.getLogger(__name__)
+import logging
+logger = logging.getLogger(__name__)
 
 
 class SearchView(FormView):
@@ -68,17 +63,7 @@ def searchapi(request):
     res = ""
     for account in qs:
         # logger.debug("Account: %s", account)
-        name = " ".join(
-            [
-                namepart
-                for namepart in (
-                    account.first_name,
-                    account.middle_name,
-                    account.last_name,
-                )
-                if namepart is not None
-            ]
-        )
+        name = account.full_name()
 
         # Highlight
         pieces = re.split(" +", querystring)
@@ -116,17 +101,7 @@ def searchapi(request):
         name = re.sub("\x00", '<span class="highlight">', name)
         name = re.sub("\x01", "</span>", name)
 
-        # hmmm... ma non dovrei trovare un account.jcom_correspondence
-        # o qualcosa di simile???
-        correspondences = Correspondence.objects.filter(account_id=account.id)
-        other = ""
-        for correspondence in correspondences:
-            notes = json2html.json2html.convert(json=correspondence.notes)
-            other += f"""<div>
-            <div>{correspondence.source}</div>
-            <div>{correspondence.notes}</div>
-            <div>{notes}</div>
-            </div>"""
+        # correspondences = ...
         # ignore for now...
         other = ""
         res += f"""<div class="LSRow">id-{account.id} {name} ({account.email}) {account.institution}
@@ -145,28 +120,20 @@ def searchapiget(request, querystring):
     return HttpResponse(res)
 
 
-Datum = namedtuple("Datum", ["name", "email", "aff"])
-
-
 def qs_to_json(qs):
     """Transform the query set into a json array of interesting data."""
     mangled_data = []
     for account in qs:
-        name = " ".join(
-            [
-                namepart
-                for namepart in (
-                    account.first_name,
-                    account.middle_name,
-                    account.last_name,
-                )
-                if namepart is not None
-            ]
-        )
+        name = account.full_name()
+        correspondences = get_correspondences(account)
         # NB: typeahead.custom.js must know about the key names used in this dict
-        mangled_data.append(
-            dict(name=name, email=account.email, aff=account.institution)
+        interesting_data = dict(
+            name=name,
+            email=account.email,
+            aff=account.institution,
+            corr=correspondences,
         )
+        mangled_data.append(interesting_data)
     return json.dumps(mangled_data)
 
 
@@ -212,3 +179,56 @@ class SearchTypeAhead(View):
         qs = get_queryset(name)
         context = dict(object_list=qs, form=form)
         return render(request, "user_search/search-typeahead.html", context)
+
+
+def get_correspondences(account):
+    """Collect the "correspondences" of this account."""
+    # hmmm... ma non dovrei trovare un account.jcom_correspondence
+    # o qualcosa di simile???
+    correspondences = Correspondence.objects.filter(account_id=account.id)
+
+    # I'm interested only in a small subset of fields
+    interesting_data = []
+    # import ipdb; ipdb.set_trace()
+    for correspondence in correspondences:
+        # TODO: data from sgp is not archived, this seems wrong even
+        # if sgp contains very few data. Please check.
+        if correspondence.source == 'sgp':
+            continue
+        notes = correspondence.notes
+        # logger.debug("NOTES (%s): %s", correspondence.source, notes)
+        interesting_data.append(
+            dict(
+                source=correspondence.source,
+                first=different_data("firstName", account, notes),
+                middle=different_data("middleName", account, notes),
+                last=different_data("lastName", account, notes),
+                full=" ".join(
+                    [
+                        _
+                        for _ in (
+                            different_data("firstName", account, notes),
+                            different_data("middleName", account, notes),
+                            different_data("lastName", account, notes),
+                        )
+                        if _ is not None
+                    ]
+                ),
+                aff=different_data("organization", account, notes),
+                email=different_data("email", account, notes),
+            )
+        )
+    return interesting_data
+
+
+def different_data(attribute, account, notes):
+    """Check if "attribute" has the same value in "account" and "note".
+
+    Return note's value only if different.
+    Return the symbol ⧺ if they are identical.
+    """
+    if attribute == "organization":
+        attribute = "institution"
+    if notes.get(attribute, None) != getattr(account, attribute.replace("Name", "_name")):
+        return notes.get(attribute, None)
+    return "⧺"

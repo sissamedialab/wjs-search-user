@@ -35,7 +35,7 @@ window.onload = function() {
             ].join('\n'),
             suggestion: Handlebars.compile(
                 '<div><strong>{{{name}}}</strong> ({{email}}) {{aff}}\n \
-<ul>{{#each corr}}<li>{{{source}}} {{full}} ({{email}}) {{aff}}</li>{{/each}}</ul>\n \
+<ul>{{#each corr}}<li>{{source}}: {{{first}}}/{{{middle}}}/{{{last}}} ({{email}}) {{aff}}</li>{{/each}}</ul>\n \
 </div>')
         }
     });

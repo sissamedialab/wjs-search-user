@@ -1,6 +1,12 @@
 variables:
   PACKAGE_NAME: 'wjs.user_search'
 
+# Not running any tests (at the moment), because they require a
+# working installation of Janeway, with this django app installed.
+stages:
+  - build
+  - deploy
+
 include:
   - project: 'wjs/wjs-search-user'
     ref: master

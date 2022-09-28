@@ -14,12 +14,7 @@ variables:
   TWINE_PASSWORD: ${CI_JOB_TOKEN}
   TWINE_USERNAME: "gitlab-ci-token"
 
-# Not running any tests (at the moment), because they require a
-# working installation of Janeway, with this django app installed.
-stages:
-  - build
-
-build-job:
+upload-package:
   stage: build
   rules:
      - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"

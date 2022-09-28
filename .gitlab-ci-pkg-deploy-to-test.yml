@@ -4,8 +4,8 @@ variables:
   # touch this file to restart the uwsgi server
   UWSGI_VASSAL: "/home/wjs/uwsgi/janeway.ini"
 
-deploy_staging:
-  stage: build
+deploy-to-test:
+  stage: deploy
   tags:
     - inasset
   image: python:3.9

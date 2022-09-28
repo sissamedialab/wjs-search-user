@@ -5,7 +5,7 @@ variables:
   UWSGI_VASSAL: "/home/wjs/uwsgi/janeway.ini"
 
 deploy_staging:
-  stage: deploy
+  stage: build
   tags:
     - inasset
   image: python:3.9

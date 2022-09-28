@@ -1,4 +1,10 @@
+variables:
+  PACKAGE_NAME: 'wjs.user_search'
+
 include:
   - project: 'wjs/wjs-search-user'
-    ref: misc/task-20-deploy-packages
+    ref: master
     file: '.gitlab-ci-pkg-build-and-upload.yml'
+  - project: 'wjs/wjs-search-user'
+    ref: master
+    file: '.gitlab-ci-pkg-deploy-to-test.yml'

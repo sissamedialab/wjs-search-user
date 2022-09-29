@@ -1,3 +1,9 @@
+default:
+  image: python:3.9
+  # Default runner tag
+  tags:
+    - inasset
+
 variables:
   PACKAGE_NAME: 'wjs.user_search'
 

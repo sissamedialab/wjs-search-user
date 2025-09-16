@@ -38,14 +38,14 @@ class TATextInput(Input):
     input_type = "text"
     template_name = "user_search/tatext.html"
 
-    def __init__(self, attrs=None):
-        """Ensure that needed attributes are present."""
+    def __init__(self, attrs=None, entity="account"):
         if attrs is None:
             attrs = {}
         attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
         attrs.setdefault("class", "typeahead")
         attrs.setdefault("placeholder", "🔎")
+        attrs["data-entity"] = entity
         super().__init__(attrs)
 
     class Media:

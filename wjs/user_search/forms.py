@@ -14,3 +14,8 @@ class SearchFormTypeAhead(forms.Form):
     """Search form."""
 
     q = forms.CharField(max_length=123, widget=TATextInput())
+
+class SearchFormTypeAheadCollaboration(forms.Form):
+    """Search form."""
+
+    q = forms.CharField(max_length=123, widget=TATextInput(entity="collaboration"))

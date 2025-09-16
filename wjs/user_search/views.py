@@ -1,12 +1,13 @@
 """User search views."""
 
 from django.views.generic import FormView, View
-from .forms import SearchForm, SearchFormTypeAhead
+from .forms import SearchForm, SearchFormTypeAhead, SearchFormTypeAheadCollaboration
 from core.models import Account
 import re
 from django.shortcuts import render
 from django.http import HttpResponse
 from wjs.jcom_profile.models import Correspondence
+from plugins.wjs_submission.models import Collaboration
 import json
 import logging
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class SearchView(FormView):
     success_url = "/bis/"
 
 
-def get_queryset(querystring):
+def get_queryset(querystring, model=Account):
     """Return a queryset for the given query string."""
     # Split the query string "name" at the spaces
     parts = re.split(" +", querystring)
@@ -30,24 +31,33 @@ def get_queryset(querystring):
     bind_values = [f"% {part} %" for part in parts]
     bind_values[-1] = f"% {parts[-1]}%"
     # Prepare the SQL where clauses, one for each part/bind value
-    base = """
-    ( concat_ws(' ',
-                '',
-                last_name,
-                nullif(middle_name,''),
-                first_name,
-                '')
-      ilike %s
-    )
-    """
-    clauses = [base for _ in parts]
-    where = "where " + " and ".join(clauses)
-    statement = (
-        f"SELECT * FROM core_account {where} "
-        "ORDER BY last_name, first_name LIMIT 41"
-    )
-    # logger.debug("Search API query statement: %s\n%s", statement, bind_values)
-    qs = Account.objects.raw(statement, bind_values)
+    if model == Account:
+        base = """
+        ( concat_ws(' ',
+                    '',
+                    last_name,
+                    nullif(middle_name,''),
+                    first_name,
+                    '')
+          ilike %s
+        )
+        """
+        clauses = [base for _ in parts]
+        where = "where " + " and ".join(clauses)
+        statement = (
+            f"SELECT * FROM core_account {where} "
+            "ORDER BY last_name, first_name LIMIT 41"
+        )
+        # logger.debug("Search API query statement: %s\n%s", statement, bind_values)
+        qs = Account.objects.raw(statement, bind_values)
+    elif model == Collaboration:
+        base = "( name ILIKE %s )"
+        clauses = [base for _ in parts]
+        where = "WHERE " + " AND ".join(clauses)
+        new_bind_values = [f"%{part}%" for part in parts]
+        statement = f"SELECT * FROM wjs_submission_collaboration {where} LIMIT 41"
+        qs = model.objects.raw(statement, new_bind_values)
+
     return qs
 
 
@@ -120,6 +130,11 @@ def searchapiget(request, querystring):
     return HttpResponse(res)
 
 
+def searchapiget_collaboration(request, querystring):
+    qs = get_queryset(querystring, model=Collaboration)
+    res = [{"id": p.id, "name": p.name} for p in qs]
+    return HttpResponse(json.dumps(res))
+
 def qs_to_json(qs):
     """Transform the query set into a json array of interesting data."""
     mangled_data = []
@@ -128,6 +143,7 @@ def qs_to_json(qs):
         correspondences = get_correspondences(account)
         # NB: typeahead.custom.js must know about the key names used in this dict
         interesting_data = dict(
+            id=account.id,
             name=name,
             email=account.email,
             aff=account.institution,
@@ -195,8 +211,7 @@ def get_correspondences(account):
         # if sgp contains very few data. Please check.
         if correspondence.source == 'sgp':
             continue
-        notes = correspondence.notes
-        # logger.debug("NOTES (%s): %s", correspondence.source, notes)
+        notes = correspondence.notes or {}
         interesting_data.append(
             dict(
                 source=correspondence.source,
@@ -227,8 +242,23 @@ def different_data(attribute, account, notes):
     Return note's value only if different.
     Return the symbol ⧺ if they are identical.
     """
+    if not isinstance(notes, dict):
+        return None
     if attribute == "organization":
         attribute = "institution"
-    if notes.get(attribute, None) != getattr(account, attribute.replace("Name", "_name")):
-        return notes.get(attribute, None)
+    if notes.get(attribute) != getattr(account, attribute.replace("Name", "_name"), None):
+        return notes.get(attribute)
     return "⧺"
+
+class SearchCollaborationTypeAhead(View):
+    def get(self, request, *args, **kwargs):
+        form = SearchFormTypeAheadCollaboration()
+        return render(request, "user_search/search-typeahead-collaboration.html", dict(form=form))
+
+    def post(self, request, *args, **kwargs):
+        form = SearchForm(request.POST)
+        form.is_valid()
+        query = form.cleaned_data.get("q")
+        qs = get_queryset(query, model=Collaboration)
+        context = dict(object_list=qs, form=form)
+        return render(request, "user_search/search-typeahead-collaboration.html", context)

@@ -1,6 +1,6 @@
 """User search form URLs."""
 
-from django.conf.urls import url
+from django.urls import re_path as url
 from wjs.user_search import views
 from core import include_urls
 
@@ -37,6 +37,9 @@ urlpatterns = [
         views.SearchTypeAhead.as_view(),
         name="search-typeahead",
     ),
+url(r"^search-typeahead-collaboration$", views.SearchCollaborationTypeAhead.as_view(), name="search-typeahead-collaboration"),
+url(r"^searchapiget_collaboration/(?P<querystring>.+)", views.searchapiget_collaboration, name="searchapiget_collaboration"),
+
 ]
 urlpatterns.extend(include_urls.urlpatterns)
 include_urls.urlpatterns = urlpatterns

@@ -7,36 +7,43 @@
 //     return Handlebars.compile('<div><strong>{{{name}}}</strong> ({{email}}) {{aff}}');
 // };
 
-window.onload = function() {
-    // TODO: parametrize url
-    var accounts = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        // queryTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
-        remote: {
-            url: 'https://janeway.sissamedialab.it/searchapiget/%QUERY',
-            wildcard: '%QUERY'
-        }
-    });
+function initTypeahead() {
+    document.querySelectorAll('.typeahead').forEach(input => {
+        if (input.dataset.initialized) return;
+        input.dataset.initialized = true;
 
-    // TODO: parametrize #id
-    $('#id_q.typeahead').typeahead(null, {
-        source: accounts,
-        display: 'name',
-        name: 'accounts',
-        minLength: 3,
-        limit: 41,
-        highlight: true,
-        templates: {
-            empty: [
-                '<div class="empty-message">',
-                'no account with such name',
-                '</div>'
-            ].join('\n'),
-            suggestion: Handlebars.compile(
-                '<div><strong>{{{name}}}</strong> ({{email}}) {{aff}}\n \
-<ul>{{#each corr}}<li>{{source}}: {{{first}}}/{{{middle}}}/{{{last}}} ({{email}}) {{aff}}</li>{{/each}}</ul>\n \
-</div>')
-        }
+        var entity = input.dataset.entity || 'account';
+        var url = entity === 'collaboration'
+            ? '/searchapiget_collaboration/%QUERY'
+            : '/searchapiget/%QUERY';
+
+        var source = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: { url: url, wildcard: '%QUERY' }
+        });
+
+        $(input).typeahead(null, {
+            source: source,
+            display: 'name',
+            name: entity,
+            minLength: 3,
+            limit: 41,
+            highlight: true,
+            templates: {
+                empty: `<div class="empty-message">no ${entity} found</div>`,
+                suggestion: Handlebars.compile('<div><strong>{{{name}}}</strong></div>')
+            }
+        }).bind('typeahead:select', function(ev, suggestion) {
+            var targetId = input.dataset.target || 'id_author_id';
+            var targetEl = document.getElementById(targetId);
+            if (targetEl) targetEl.value = suggestion.id;
+            targetEl?.dispatchEvent(new Event('change', { bubbles: true }));
+        });
     });
-};
+}
+
+window.addEventListener('load', initTypeahead);
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.target.querySelector('.typeahead')) initTypeahead();
+});

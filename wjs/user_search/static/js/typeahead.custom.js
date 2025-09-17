@@ -35,11 +35,21 @@ function initTypeahead() {
                 suggestion: Handlebars.compile('<div><strong>{{{name}}}</strong></div>')
             }
         }).bind('typeahead:select', function(ev, suggestion) {
-            var targetId = input.dataset.target || 'id_author_id';
-            var targetEl = document.getElementById(targetId);
-            if (targetEl) targetEl.value = suggestion.id;
-            targetEl?.dispatchEvent(new Event('change', { bubbles: true }));
-        });
+    var targetEl;
+
+    if (input.dataset.entity === 'collaboration') {
+        console.log("ciao")
+        targetEl = document.getElementById('id_collaboration_id');
+    } else {
+        targetEl = document.getElementById('id_author_id');
+    }
+
+    if (targetEl) {
+        targetEl.value = suggestion.id;
+        targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+});
+
     });
 }
 

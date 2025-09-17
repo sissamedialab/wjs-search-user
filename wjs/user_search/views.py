@@ -231,6 +231,8 @@ def get_correspondences(account):
                 ),
                 aff=different_data("organization", account, notes),
                 email=different_data("email", account, notes),
+                country=different_data("country", account, notes),
+                orcid=different_data("orcid", account, notes),
             )
         )
     return interesting_data

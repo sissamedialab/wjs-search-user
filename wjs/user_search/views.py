@@ -142,13 +142,14 @@ def qs_to_json(qs):
         name = account.full_name()
         correspondences = get_correspondences(account)
         # NB: typeahead.custom.js must know about the key names used in this dict
+        country = account.country.name if account.country else None
         interesting_data = dict(
             id=account.id,
             name=name,
             email=account.email,
             aff=account.institution,
             corr=correspondences,
-            country=account.country,
+            country=country,
             orcid=account.orcid,
 
         )

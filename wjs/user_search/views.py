@@ -148,6 +148,9 @@ def qs_to_json(qs):
             email=account.email,
             aff=account.institution,
             corr=correspondences,
+            country=account.country,
+            orcid=account.orcid,
+
         )
         mangled_data.append(interesting_data)
     return json.dumps(mangled_data)

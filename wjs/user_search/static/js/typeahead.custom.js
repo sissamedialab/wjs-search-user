@@ -17,14 +17,21 @@ function initTypeahead() {
             ? '/searchapiget_collaboration/%QUERY'
             : '/searchapiget/%QUERY';
 
-        var source = new Bloodhound({
+        var engine = new Bloodhound({
             datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: { url: url, wildcard: '%QUERY' }
         });
+        var minLength = 3;
+        function gatedSource(query, sync, async) {
+            if (query.length < minLength) {
+                return sync([]);
+            }
+            return engine.search(query, sync, async);
+        }
 
         $(input).typeahead(null, {
-            source: source,
+            source: gatedSource,
             display: 'name',
             name: entity,
             minLength: 3,
@@ -38,7 +45,6 @@ function initTypeahead() {
     var targetEl;
 
     if (input.dataset.entity === 'collaboration') {
-        console.log("ciao")
         targetEl = document.getElementById('id_collaboration_id');
     } else {
         targetEl = document.getElementById('id_author_id');

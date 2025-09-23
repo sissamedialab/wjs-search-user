@@ -13,9 +13,9 @@ class SearchForm(forms.Form):
 class SearchFormTypeAhead(forms.Form):
     """Search form."""
 
-    q = forms.CharField(max_length=123, widget=TATextInput())
+    author = forms.CharField(max_length=123, required=False, widget=TATextInput(attrs={"placeholder": "Search author (name, surname, Orcid ID, mail..."}, entity="account"))
 
 class SearchFormTypeAheadCollaboration(forms.Form):
     """Search form."""
 
-    q = forms.CharField(max_length=123, widget=TATextInput(entity="collaboration"))
+    collaboration = forms.CharField(max_length=123, required=True, widget=TATextInput(attrs={"placeholder": "Collaboration's name"}, entity="collaboration"))

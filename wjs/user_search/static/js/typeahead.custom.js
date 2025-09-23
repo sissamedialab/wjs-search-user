@@ -39,7 +39,7 @@ function initTypeahead() {
             highlight: true,
             templates: {
                 empty: `<div class="empty-message">no ${entity} found</div>`,
-                suggestion: Handlebars.compile('<div><strong>{{{name}}}</strong></div>')
+                suggestion: Handlebars.compile('<div class="row"><span class="col">{{name}}</span><span class="col">{{email}}</span><span class="col">{{aff}}</span> <span class="col">{{orcid}}</span> <span class="col">{{country}}</span><span class="col-1 text-end">+</span></div>')
             }
         }).bind('typeahead:select', function(ev, suggestion) {
     var targetEl;

@@ -17,7 +17,6 @@ class LSTextInput(Input):
         attrs.setdefault("onkeypress", "liveSearchStart()")
         attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
-        attrs.setdefault("placeholder", "🔎")
         super().__init__(attrs)
 
     class Media:
@@ -44,7 +43,6 @@ class TATextInput(Input):
         attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
         attrs.setdefault("class", "typeahead")
-        attrs.setdefault("placeholder", "🔎")
         attrs["data-entity"] = entity
         super().__init__(attrs)
 

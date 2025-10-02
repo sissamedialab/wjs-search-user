@@ -28,8 +28,8 @@ def get_queryset(querystring, model=Account):
     # Prepare a bind value for each splitted part
     # each bind value will be surrounded b % and space
     # except for the last one
-    bind_values = [f"% {part} %" for part in parts]
-    bind_values[-1] = f"% {parts[-1]}%"
+    bind_values = [f"%{part}%" for part in parts]
+    bind_values[-1] = f"%{parts[-1]}%"
     # Prepare the SQL where clauses, one for each part/bind value
     if model == Account:
         base = """
@@ -40,6 +40,8 @@ def get_queryset(querystring, model=Account):
                     first_name,
                     '')
           ilike %s
+          OR email ilike %s
+          OR orcid ilike %s
         )
         """
         clauses = [base for _ in parts]
@@ -49,7 +51,11 @@ def get_queryset(querystring, model=Account):
             "ORDER BY last_name, first_name LIMIT 41"
         )
         # logger.debug("Search API query statement: %s\n%s", statement, bind_values)
-        qs = Account.objects.raw(statement, bind_values)
+        expanded_bind_values = []
+        for v in bind_values:
+            expanded_bind_values.extend([v, v, v])
+        qs = Account.objects.raw(statement, expanded_bind_values)
+
     elif model == Collaboration:
         base = "( name ILIKE %s )"
         clauses = [base for _ in parts]

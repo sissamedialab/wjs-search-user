@@ -59,3 +59,6 @@ class TATextInput(Input):
             "js/typeahead.custom.js",
             "js/handlebars-v4.7.7.js",
         )
+
+    def use_required_attribute(self, initial):
+        return self.is_required

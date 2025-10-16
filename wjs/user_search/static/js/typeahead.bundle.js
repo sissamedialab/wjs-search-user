@@ -1109,17 +1109,17 @@
     var WWW = function() {
         "use strict";
         var defaultClassNames = {
-            wrapper: "twitter-typeahead",
-            input: "tt-input",
-            hint: "tt-hint",
-            menu: "tt-menu",
-            dataset: "tt-dataset",
-            suggestion: "tt-suggestion",
-            selectable: "tt-selectable",
-            empty: "tt-empty",
-            open: "tt-open",
-            cursor: "tt-cursor",
-            highlight: "tt-highlight"
+            wrapper: "wjs-submission-form__search-input-autosuggest",
+            input: "wjs-submission-form__search-input-autosuggest form-control",
+            hint: "wjs-submission-form__search-input-hint",
+            menu: "wjs-submission-form__search-menu",
+            dataset: "wjs-submission-form__search-dataset",
+            suggestion: "wjs-submission-form__search-suggestion",
+            selectable: "wjs-submission-form__search-selectable",
+            empty: "wjs-submission-form__search--empty",
+            open: "wjs-submission-form__search--open",
+            cursor: "wjs-submission-form__search-cursor",
+            highlight: "wjs-submission-form__search-highlight"
         };
         return build;
         function build(o) {
@@ -1161,12 +1161,7 @@
                     display: "inline-block"
                 },
                 hint: {
-                    position: "absolute",
-                    top: "0",
-                    left: "0",
-                    borderColor: "transparent",
-                    boxShadow: "none",
-                    opacity: "1"
+                    display: "none"
                 },
                 input: {
                     position: "relative",
@@ -1182,7 +1177,7 @@
                     top: "100%",
                     left: "0",
                     zIndex: "100",
-                    display: "none"
+                    display: "none",
                 },
                 ltr: {
                     left: "0",

@@ -17,7 +17,6 @@ class LSTextInput(Input):
         attrs.setdefault("onkeypress", "liveSearchStart()")
         attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
-        attrs.setdefault("placeholder", "🔎")
         super().__init__(attrs)
 
     class Media:
@@ -38,14 +37,13 @@ class TATextInput(Input):
     input_type = "text"
     template_name = "user_search/tatext.html"
 
-    def __init__(self, attrs=None):
-        """Ensure that needed attributes are present."""
+    def __init__(self, attrs=None, entity="account"):
         if attrs is None:
             attrs = {}
         attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
         attrs.setdefault("class", "typeahead")
-        attrs.setdefault("placeholder", "🔎")
+        attrs["data-entity"] = entity
         super().__init__(attrs)
 
     class Media:
@@ -61,3 +59,6 @@ class TATextInput(Input):
             "js/typeahead.custom.js",
             "js/handlebars-v4.7.7.js",
         )
+
+    def use_required_attribute(self, initial):
+        return self.is_required

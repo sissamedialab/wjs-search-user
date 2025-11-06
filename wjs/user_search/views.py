@@ -61,7 +61,7 @@ def get_queryset(querystring, model=Account):
         clauses = [base for _ in parts]
         where = "WHERE " + " AND ".join(clauses)
         new_bind_values = [f"%{part}%" for part in parts]
-        statement = f"SELECT * FROM wjs_submission_collaboration {where} LIMIT 41"
+        statement = f"SELECT * FROM wjs_submission_collaboration {where} AND public_listing = TRUE LIMIT 41"
         qs = model.objects.raw(statement, new_bind_values)
 
     return qs

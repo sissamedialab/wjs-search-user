@@ -11,5 +11,11 @@
     <div>
       {{ form.collaboration }}
     </div>
+    <script>
+        document.body.addEventListener("htmx:afterRequest", function(e) {
+          const input = document.querySelector('input[name="collaboration"]');
+          if (input) input.value = "";
+        });
+    </script>
   </body>
 </html>

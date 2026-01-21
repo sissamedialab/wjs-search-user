@@ -11,5 +11,11 @@
     <div>
       {{ form.author }}
     </div>
+  <script>
+    document.body.addEventListener("htmx:afterRequest", function(e) {
+      const input = document.querySelector('input[name="author"]');
+      if (input) input.value = "";
+    });
+  </script>
   </body>
 </html>

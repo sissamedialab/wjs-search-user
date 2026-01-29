@@ -15,7 +15,10 @@ function initTypeahead() {
     const entity = input.dataset.entity || "account";
     const url = entity === "collaboration"
       ? "/searchapiget_collaboration/%QUERY"
-      : "/searchapiget/%QUERY";
+      : entity === "funding"
+        ? "/searchapiget_funding/%QUERY"
+        : "/searchapiget/%QUERY";
+
 
     const engine = new Bloodhound({
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace("name"),
@@ -40,16 +43,32 @@ function initTypeahead() {
       highlight: true,
       templates: {
         empty: `<div class="empty-message">no ${entity} found</div>`,
-        suggestion: Handlebars.compile("<div class=\"row\"><span class=\"col\">{{name}}</span><span class=\"col\">{{email}}</span><span class=\"col\">{{aff}}</span> <span class=\"col\">{{orcid}}</span> <span class=\"col\">{{country}}</span><span class=\"col-1 text-end\">+</span></div>"),
+        suggestion: Handlebars.compile("<div class=\"row\"><span class=\"col\">{{name}}</span><span class=\"col\">{{email}}</span><span class=\"col\">{{aff}}</span> <span class=\"col\">{{orcid}}</span> <span class=\"col\">{{doi}}</span> <span class=\"col\">{{country}}</span><span class=\"col-1 text-end\">+</span></div>"),
       },
     }).bind("typeahead:select", function(ev, suggestion) {
-      console.log(suggestion);
-      const targetEl = (input.dataset.entity === "collaboration") ? document.getElementById("id_collaboration_id") : document.getElementById("id_author_id");
+        console.log(suggestion);
+        let targetEl;
 
-      if (targetEl) {
-        targetEl.value = suggestion.id;
-        targetEl.dispatchEvent(new Event("change", { bubbles: true }));
-      }
+        if (entity === "collaboration") {
+          targetEl = document.getElementById("id_collaboration_id");
+        } else if (entity === "funding") {
+          targetEl = document.getElementById("id_funding_id");
+        } else {
+          targetEl = document.getElementById("id_author_id");
+        }
+
+        if (targetEl) {
+          targetEl.value = suggestion.id || suggestion.doi || "";
+          if (entity === "funding") {
+          targetEl.dataset.name = suggestion.name || "";
+          targetEl.dataset.country = suggestion.country || "";
+
+          const currentVals = JSON.parse(targetEl.getAttribute("hx-vals") || "{}");
+          currentVals.funding_country = suggestion.country || "";
+          targetEl.setAttribute("hx-vals", JSON.stringify(currentVals));
+        }
+          targetEl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
     }).bind("typeahead:asyncreceive", function(ev) {
       document.dispatchEvent(new Event("typeahead:asyncreceive", { bubbles: true }));
     });

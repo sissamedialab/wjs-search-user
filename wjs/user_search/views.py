@@ -33,6 +33,16 @@ class SearchView(FormView):
 
 
 class FundingQuerySet:
+    """
+    Represents a collection of funding items matching relevant methods of a Django QuerySet.
+    
+    Provides iteration, indexing, and length-based access for structured funding
+    items. The funding items include information about the funder's name, DOI,
+    and country of origin.
+
+    :ivar _items: Internal list of named tuples representing funding items.
+    :type _items: list
+    """
     def __init__(self, items):
         Funder = namedtuple("Funder", ["name", "doi", "country"])
         self._items = [Funder(
@@ -166,10 +176,8 @@ def searchapi(request):
 
 def searchapiget(request, querystring):
     """Return an HTML fragment for the given querystring."""
-    # import ipdb; ipdb.set_trace()
     qs = get_queryset(querystring)
     res = qs_to_json(qs)
-    # res = qs_to_string(qs)
     return HttpResponse(res)
 
 
@@ -182,7 +190,6 @@ def searchapiget_collaboration(request, querystring):
 def searchapiget_funding(request, querystring):
     qs = get_queryset(querystring, model=ArticleFunding)
     res = [{"doi": p.doi, "name": p.name, "country": p.country} for p in qs]
-    print(res)
     return HttpResponse(json.dumps(res))
 
 

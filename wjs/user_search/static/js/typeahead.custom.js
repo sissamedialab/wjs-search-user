@@ -45,8 +45,17 @@ function initTypeahead() {
         empty: `<div class="empty-message">no ${entity} found</div>`,
         suggestion: Handlebars.compile("<div class=\"row\"><span class=\"col\">{{name}}</span><span class=\"col\">{{email}}</span><span class=\"col\">{{aff}}</span> <span class=\"col\">{{orcid}}</span> <span class=\"col\">{{doi}}</span> <span class=\"col\">{{country}}</span><span class=\"col-1 text-end\">+</span></div>"),
       },
+     }).bind('typeahead:open', function() {
+        if ($(this).typeahead('val').length >= minLength) {
+            $(this).attr('aria-expanded', 'true');
+        } else {
+            $(this).attr('aria-expanded', 'false');
+        }
+      }).bind('typeahead:render', function(ev, suggestions) {
+        $(this).attr('aria-expanded', suggestions && suggestions.length > 0);
+      }).bind('typeahead:close', function() {
+        $(this).attr('aria-expanded', 'false');
     }).bind("typeahead:select", function(ev, suggestion) {
-      console.log(suggestion);
       let targetEl;
 
       if (entity === "collaboration") {

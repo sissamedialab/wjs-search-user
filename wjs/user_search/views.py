@@ -1,15 +1,26 @@
 """User search views."""
 
-from django.views.generic import FormView, View
-from .forms import SearchForm, SearchFormTypeAhead, SearchFormTypeAheadCollaboration
-from core.models import Account
-import re
-from django.shortcuts import render
-from django.http import HttpResponse
-from wjs.jcom_profile.models import Correspondence
-from plugins.wjs_submission.models import Collaboration
 import json
 import logging
+import re
+from collections import namedtuple
+
+import requests
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.views.generic import FormView, View
+
+from core.models import Account
+from plugins.wjs_submission.models import Collaboration
+from submission.models import ArticleFunding
+from wjs.jcom_profile.models import Correspondence
+from .forms import (
+    SearchForm,
+    SearchFormTypeAhead,
+    SearchFormTypeAheadCollaboration,
+    SearchFormTypeAheadFunding,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,6 +30,35 @@ class SearchView(FormView):
     template_name = "user_search/search.html"
     form_class = SearchForm
     success_url = "/bis/"
+
+
+class FundingQuerySet:
+    """
+    Represents a collection of funding items matching relevant methods of a Django QuerySet.
+    
+    Provides iteration, indexing, and length-based access for structured funding
+    items. The funding items include information about the funder's name, DOI,
+    and country of origin.
+
+    :ivar _items: Internal list of named tuples representing funding items.
+    :type _items: list
+    """
+    def __init__(self, items):
+        Funder = namedtuple("Funder", ["name", "doi", "country"])
+        self._items = [Funder(
+            name=i.get("name"),
+            doi=i.get("uri"),
+            country=i.get("location", "")
+        ) for i in items]
+
+    def __iter__(self):
+        return iter(self._items)
+
+    def __getitem__(self, key):
+        return self._items[key]
+
+    def __len__(self):
+        return len(self._items)
 
 
 def get_queryset(querystring, model=Account):
@@ -63,7 +103,14 @@ def get_queryset(querystring, model=Account):
         new_bind_values = [f"%{part}%" for part in parts]
         statement = f"SELECT * FROM wjs_submission_collaboration {where} AND public_listing = TRUE LIMIT 41"
         qs = model.objects.raw(statement, new_bind_values)
-
+    elif model == ArticleFunding:
+        url = "https://api.crossref.org/funders"
+        params = {"query": querystring}
+        resp = requests.get(url, params=params, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+        items = data.get("message", {}).get("items", [])
+        qs = FundingQuerySet(items)
     return qs
 
 
@@ -129,10 +176,8 @@ def searchapi(request):
 
 def searchapiget(request, querystring):
     """Return an HTML fragment for the given querystring."""
-    # import ipdb; ipdb.set_trace()
     qs = get_queryset(querystring)
     res = qs_to_json(qs)
-    # res = qs_to_string(qs)
     return HttpResponse(res)
 
 
@@ -140,6 +185,13 @@ def searchapiget_collaboration(request, querystring):
     qs = get_queryset(querystring, model=Collaboration)
     res = [{"id": p.id, "name": p.name} for p in qs]
     return HttpResponse(json.dumps(res))
+
+
+def searchapiget_funding(request, querystring):
+    qs = get_queryset(querystring, model=ArticleFunding)
+    res = [{"doi": p.doi, "name": p.name, "country": p.country} for p in qs]
+    return HttpResponse(json.dumps(res))
+
 
 def qs_to_json(qs):
     """Transform the query set into a json array of interesting data."""
@@ -274,3 +326,17 @@ class SearchCollaborationTypeAhead(View):
         qs = get_queryset(query, model=Collaboration)
         context = dict(object_list=qs, form=form)
         return render(request, "user_search/search-typeahead-collaboration.html", context)
+
+
+class SearchFundingTypeAhead(View):
+    def get(self, request, *args, **kwargs):
+        form = SearchFormTypeAheadFunding()
+        return render(request, "user_search/search-typeahead-funding.html", dict(form=form))
+
+    def post(self, request, *args, **kwargs):
+        form = SearchForm(request.POST)
+        form.is_valid()
+        query = form.cleaned_data.get("q")
+        qs = get_queryset(query, model=ArticleFunding)
+        context = dict(object_list=qs, form=form)
+        return render(request, "user_search/search-typeahead-funding.html", context)

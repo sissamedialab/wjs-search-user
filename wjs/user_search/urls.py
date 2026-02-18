@@ -37,6 +37,8 @@ urlpatterns = [
         views.SearchTypeAhead.as_view(),
         name="search-typeahead",
     ),
+url(r"^search-typeahead-funding$", views.SearchFundingTypeAhead.as_view(), name="search-typeahead-funding"),
+url(r"^searchapiget_funding/(?P<querystring>.+)", views.searchapiget_funding, name="searchapiget_funding"),
 url(r"^search-typeahead-collaboration$", views.SearchCollaborationTypeAhead.as_view(), name="search-typeahead-collaboration"),
 url(r"^searchapiget_collaboration/(?P<querystring>.+)", views.searchapiget_collaboration, name="searchapiget_collaboration"),
 

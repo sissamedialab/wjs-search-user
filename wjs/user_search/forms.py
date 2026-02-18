@@ -19,3 +19,9 @@ class SearchFormTypeAheadCollaboration(forms.Form):
     """Search form."""
 
     collaboration = forms.CharField(max_length=123, required=False, widget=TATextInput(attrs={"placeholder": "Collaboration's name"}, entity="collaboration"))
+
+
+class SearchFormTypeAheadFunding(forms.Form):
+    """Search form."""
+
+    funding = forms.CharField(max_length=123, required=False, widget=TATextInput(attrs={"placeholder": "Funding's name"}, entity="funding"))

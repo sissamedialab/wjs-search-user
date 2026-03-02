@@ -1,6 +1,5 @@
 default:
-  image: python:3.9
-  # Default runner tag
+  image: python:3.11
   tags:
     - inasset
 
@@ -15,8 +14,60 @@ stages:
 
 include:
   - project: 'wjs/wjs-search-user'
-    ref: master
+    ref: wjs-production
     file: '.gitlab-ci-pkg-build-and-upload.yml'
-  - project: 'wjs/wjs-search-user'
-    ref: master
+  - project: 'wjs/wjs-profile-project'
+    ref: wjs-production
     file: '.gitlab-ci-pkg-deploy-to-test.yml'
+
+
+
+
+deploy-to-pre-production:
+  environment: pre-production
+  extends:
+    - .deploy
+  variables:
+    SERVER_IP: "$TEST_SERVER_IP"
+    SERVER_USER: "$TEST_SERVER_USER"
+    DEPLOY_CMD: "deploy-pp-wjs-search"
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "wjs-develop"
+      when: on_success
+    - when: manual
+
+
+deploy-to-test:
+  # Deploy the current commit to test instance
+  # Warning! Be sure not to disrupt other peoples work 🙂
+  extends:
+    - .deploy
+  when: manual
+  variables:
+    SERVER_IP: "$TEST_SERVER_IP"
+    SERVER_USER: "$TEST_SERVER_USER"
+    DEPLOY_CMD: "deploy-test-wjs-search:${CI_COMMIT_SHA}"
+
+
+deploy-to-dev:
+  extends:
+    - .deploy
+  variables:
+    SERVER_IP: "$TEST_SERVER_IP"
+    SERVER_USER: "$TEST_SERVER_USER"
+    DEPLOY_CMD: "deploy-dev-wjs-search:${CI_COMMIT_SHA}"
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "wjs-production"
+      when: on_success
+    - when: manual
+
+
+deploy-to-production:
+  extends:
+    - .deploy
+  when: manual
+  environment: production
+  variables:
+    SERVER_IP: "$PROD_SERVER_IP"
+    SERVER_USER: "$PROD_SERVER_USER"
+    DEPLOY_CMD: "deploy-prod-wjs-search"

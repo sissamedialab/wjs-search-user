@@ -13,12 +13,21 @@ stages:
   - deploy
 
 include:
-  - project: 'wjs/wjs-search-user'
+  - project: 'wjs/wjs-profile-project'
     ref: wjs-production
     file: '.gitlab-ci-pkg-build-and-upload.yml'
   - project: 'wjs/wjs-profile-project'
     ref: wjs-production
-    file: '.gitlab-ci-pkg-deploy-to-test.yml'
+    file: '.gitlab-ci-pkg-deploy.yml'
+
+
+
+
+upload-package:
+  only:
+    - tags
+  extends:
+    - .upload-package
 
 
 
@@ -32,7 +41,7 @@ deploy-to-pre-production:
     SERVER_USER: "$TEST_SERVER_USER"
     DEPLOY_CMD: "deploy-pp-wjs-search"
   rules:
-    - if: $CI_COMMIT_REF_NAME == "wjs-develop"
+    - if: $CI_COMMIT_REF_NAME == "wjs-production"
       when: on_success
     - when: manual
 
@@ -57,7 +66,7 @@ deploy-to-dev:
     SERVER_USER: "$TEST_SERVER_USER"
     DEPLOY_CMD: "deploy-dev-wjs-search:${CI_COMMIT_SHA}"
   rules:
-    - if: $CI_COMMIT_REF_NAME == "wjs-production"
+    - if: $CI_COMMIT_REF_NAME == "wjs-develop"
       when: on_success
     - when: manual
 

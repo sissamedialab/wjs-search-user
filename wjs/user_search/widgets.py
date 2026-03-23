@@ -40,7 +40,6 @@ class TATextInput(Input):
     def __init__(self, attrs=None, entity="account"):
         if attrs is None:
             attrs = {}
-        attrs.setdefault("autofocus", "autofocus")
         attrs.setdefault("autocomplete", "off")
         attrs.setdefault("class", "typeahead")
         attrs["data-entity"] = entity

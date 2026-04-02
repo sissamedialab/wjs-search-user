@@ -74,6 +74,10 @@ function initTypeahead() {
 
           const currentVals = JSON.parse(targetEl.getAttribute("hx-vals") || "{}");
           currentVals.funding_country = suggestion.country || "";
+          currentVals.name = suggestion.name || "";
+          currentVals.country = suggestion.country || "";
+          currentVals.fundref_id = suggestion.doi || "";
+          currentVals.funding_id = "";
           targetEl.setAttribute("hx-vals", JSON.stringify(currentVals));
         }
         targetEl.dispatchEvent(new Event("change", { bubbles: true }));

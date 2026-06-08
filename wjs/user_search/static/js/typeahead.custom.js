@@ -7,6 +7,71 @@
 //     return Handlebars.compile('<div><strong>{{{name}}}</strong> ({{email}}) {{aff}}');
 // };
 
+function searchInputAutosuggestA11y($input) {
+  var tt = $input.data("tt-typeahead");
+  if (!tt) return;
+
+  var inputInst = tt.input;
+  var menuInst = tt.menu;
+
+  var menuId = "tt-listbox-" + Date.now();
+  menuInst.$node.attr({ role: "listbox", id: menuId });
+  inputInst.$input.attr({ "aria-controls": menuId, "aria-haspopup": "listbox" });
+
+  menuInst.$node.on("focusin.tt-a11y", function() {
+    setTimeout(function() { inputInst.$input[0].focus(); }, 0);
+  });
+
+  $input.on("typeahead:open typeahead:close typeahead:render", function() {
+    menuInst.$node.removeAttr("aria-expanded");
+  });
+
+  $input.on("typeahead:render", function() {
+    menuInst.$node.find(".wjs-submission-form__search-selectable").each(function(i) {
+      var $el = $(this);
+      var obj = $el.data("tt-selectable-object") || {};
+      var email = obj.email ? obj.email.replace("@", " at ").replace(/\./g, " dot ") : "";
+      var label = [obj.name, email, obj.aff, obj.orcid, obj.doi, obj.country]
+        .filter(Boolean).join(", ");
+      $el.attr({
+        role: "option",
+        "aria-selected": "false",
+        "aria-label": label,
+        id: menuId + "-opt-" + i,
+      });
+      $el.children().attr("aria-hidden", "true");
+    });
+  });
+
+  var origMoveCursor = tt.moveCursor.bind(tt);
+  tt.moveCursor = function(delta) {
+    var origSetInputValue = inputInst.setInputValue.bind(inputInst);
+    inputInst.setInputValue = function() {};
+    var result = origMoveCursor(delta);
+    inputInst.setInputValue = origSetInputValue;
+    return result;
+  };
+
+  inputInst._shouldTrigger = function(keyName, $e) {
+    if (keyName === "tab") return !$e.altKey && !$e.ctrlKey && !$e.metaKey;
+    return true;
+  };
+
+  tt._onTabKeyed = function(type, $e) {
+    if (!this.isOpen()) return;
+    var isForward = !$e.shiftKey;
+    var $current = menuInst.getActiveSelectable();
+    if (!isForward && !$current) { this.close(); return; }
+    var $next = menuInst.selectableRelativeToCursor(isForward ? +1 : -1);
+    if ($next === null) {
+      this.close();
+    } else {
+      $e.preventDefault();
+      this.moveCursor(isForward ? +1 : -1);
+    }
+  };
+}
+
 function initTypeahead() {
   document.querySelectorAll(".typeahead").forEach(input => {
     if (input.dataset.initialized) return;
@@ -85,6 +150,8 @@ function initTypeahead() {
     }).bind("typeahead:asyncreceive", function(ev) {
       document.dispatchEvent(new Event("typeahead:asyncreceive", { bubbles: true }));
     });
+
+    searchInputAutosuggestA11y($(input));
   });
 }
 

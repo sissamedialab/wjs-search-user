@@ -35,7 +35,7 @@ class SearchView(FormView):
 class FundingQuerySet:
     """
     Represents a collection of funding items matching relevant methods of a Django QuerySet.
-    
+
     Provides iteration, indexing, and length-based access for structured funding
     items. The funding items include information about the funder's name, DOI,
     and country of origin.
@@ -188,9 +188,19 @@ def searchapiget_collaboration(request, querystring):
 
 
 def searchapiget_funding(request, querystring):
-    qs = get_queryset(querystring, model=ArticleFunding)
+    try:
+        qs = get_queryset(querystring, model=ArticleFunding)
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Error contacting Crossref funders API for %r: %s", querystring, exc)
+        # Carry the error as a renderable array item so the typeahead dropdown
+        # can show it to the operator (see the "error" branch in typeahead.custom.js).
+        return HttpResponse(
+            json.dumps([{"error": "Could not reach the funder registry at Crossref. Please try again."}]),
+            content_type="application/json",
+        )
+
     res = [{"doi": p.doi, "name": p.name, "country": p.country} for p in qs]
-    return HttpResponse(json.dumps(res))
+    return HttpResponse(json.dumps(res), content_type="application/json")
 
 
 def qs_to_json(qs):

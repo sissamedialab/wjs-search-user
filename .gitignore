@@ -13,3 +13,5 @@ __pycache__
 scaffold
 build
 dist
+# Git worktrees for isolated task work
+.worktrees/

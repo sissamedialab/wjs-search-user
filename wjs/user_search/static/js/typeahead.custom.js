@@ -110,7 +110,7 @@ function initTypeahead() {
       highlight: true,
       templates: {
         empty: `<div class="empty-message">no ${entity} found</div>`,
-        suggestion: Handlebars.compile("{{#if error}}<div class=\"row text-danger\">{{error}}</div>{{else}}<div class=\"row\">{{#if doi}}<span class=\"col-4\">{{else}}<span class=\"col-2\">{{/if}}{{name}}</span>{{#if doi}}<span class=\"col-4\">{{doi}}</span>{{else}}<span class=\"col-3\">{{email}}</span>{{/if}}{{#if doi}}<span class=\"col-2\">{{country}}</span>{{else}}<span class=\"col-4\">{{aff}} {{country}}</span>{{/if}} <span class=\"col-2\">{{orcid}}</span><span class=\"col-1 text-end\">+</span></div>{{/if}}"),
+        suggestion: Handlebars.compile("{{#if error}}<div class=\"row text-danger\">{{error}}</div>{{else}}<div class=\"row\">{{#if doi}}<span class=\"col-4\">{{else}}<span class=\"col-2\">{{/if}}{{name}}</span>{{#if doi}}<span class=\"col-4\">{{doi}}</span>{{else}}<span class=\"col-3\">{{email}}</span>{{/if}}{{#if doi}}<span class=\"col-2\">{{country}}</span>{{else}}<span class=\"col-4\">{{aff}} {{country}}</span>{{/if}} {{#if doi}}{{else}}<span class=\"col-2\">{{orcid}}</span>{{/if}} <span class=\"col-1 text-end\">+</span></div>{{/if}}"),
       },
      }).bind('typeahead:open', function() {
         if ($(this).typeahead('val').length >= minLength) {

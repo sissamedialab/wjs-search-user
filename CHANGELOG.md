@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.1] - 2026-11-05
+
+- No linked issue — fix: fix missing check in funding autocomplete template (!13)
+- No linked issue — feat: improve results table layout (!12)
+
 ## [2.1.0] - 2026-09-16
 
 - [specs#2595: Migrate to Django 5.2](https://gitlab.sissamedialab.it/wjs/specs/-/work_items/2595) — Django 5.2 migration (!11)
